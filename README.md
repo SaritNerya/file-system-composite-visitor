@@ -11,8 +11,7 @@
   <img src="preview.gif" alt="Interactive demo preview" width="720">
 </p>
 
-<p align="center"><b><a href="index.html">▶ Open the live interactive demo</a></b> — click it on GitHub, then use download button, or enable GitHub Pages on this repo for a permanent one-click link (Settings → Pages → Deploy from branch → root).</p>
-
+<p align="center"><b><a href="https://saritnerya.github.io/file-system-composite-visitor/">🚀 Launch the Interactive File System Demo</a></b></p>
 ---
 
 ## About
