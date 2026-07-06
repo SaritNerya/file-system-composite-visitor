@@ -11,7 +11,7 @@
   <img src="preview.gif" alt="Interactive demo preview" width="720">
 </p>
 
-<p align="center"><b><a href="index.html">▶ Open the live interactive demo</a></b> — click it on GitHub, then use "Raw" or download once, or enable GitHub Pages on this repo for a permanent one-click link (Settings → Pages → Deploy from branch → root). Once enabled it lives at <code>https://&lt;your-username&gt;.github.io/&lt;repo-name&gt;/index.html</code>.</p>
+<p align="center"><b><a href="index.html">▶ Open the live interactive demo</a></b> — click it on GitHub, then use download button, or enable GitHub Pages on this repo for a permanent one-click link (Settings → Pages → Deploy from branch → root).</p>
 
 ---
 
