@@ -1,0 +1,4 @@
+# Keep the interactive HTML demo out of GitHub's language statistics
+# so the repo is correctly reported as a Java project.
+*.html linguist-vendored
+*.svg linguist-vendored

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>File System — Composite &amp; Visitor demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#161a22;
+    --panel-2:#1c212b;
+    --border:#262c38;
+    --text:#e7e9ee;
+    --muted:#8b93a7;
+    --amber:#f2b134;
+    --mint:#6ee7d1;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+    --display: 'Space Grotesk', var(--mono);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--mono);
+    padding:32px 20px 60px;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  .wrap{max-width:980px;margin:0 auto;}
+  header{margin-bottom:28px;}
+  .eyebrow{
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--mint);margin:0 0 10px;
+  }
+  h1{
+    font-family:var(--display);
+    font-size:clamp(24px,3.4vw,34px);
+    margin:0 0 8px;font-weight:700;
+  }
+  .sub{color:var(--muted);font-size:14px;line-height:1.6;max-width:640px;}
+  .sub b{color:var(--text);font-weight:600;}
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap:18px;
+    margin-top:26px;
+  }
+  @media (max-width:820px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .panel-head{
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    font-size:12px;color:var(--muted);
+    display:flex;justify-content:space-between;align-items:center;
+    letter-spacing:.04em;
+  }
+  .dots{display:flex;gap:6px;}
+  .dots span{width:8px;height:8px;border-radius:50%;background:#3a4152;display:inline-block;}
+
+  #tree{ padding:16px 14px; font-size:13.5px; line-height:1.9; }
+  .node{
+    display:flex; align-items:center; gap:8px;
+    padding:2px 6px; border-radius:6px;
+    white-space:nowrap;
+    transition: background .25s ease, color .25s ease;
+  }
+  .node.dir{ color:var(--amber); font-weight:600; }
+  .node .icon{ opacity:.9; }
+  .node.hit{ background:rgba(110,231,209,.16); color:var(--mint) !important; }
+  .indent{ display:inline-block; }
+
+  .controls{ padding:14px; border-bottom:1px solid var(--border); display:flex; flex-wrap:wrap; gap:8px; }
+  button{
+    font-family:var(--mono);
+    background:var(--panel-2);
+    color:var(--text);
+    border:1px solid var(--border);
+    padding:8px 13px;
+    border-radius:7px;
+    cursor:pointer;
+    font-size:13px;
+    transition:.15s border-color, .15s transform;
+  }
+  button:hover{ border-color:var(--mint); transform:translateY(-1px); }
+  button:active{ transform:translateY(0); }
+  button.primary{ border-color:var(--amber); color:var(--amber); }
+
+  #console{
+    padding:14px;
+    font-size:13px;
+    min-height:260px;
+    max-height:420px;
+    overflow-y:auto;
+    line-height:1.75;
+    white-space:pre-wrap;
+  }
+  #console .line{opacity:0; animation:fadeIn .3s forwards;}
+  @keyframes fadeIn{ to{opacity:1;} }
+  #console .prompt{ color:var(--mint); }
+  #console .result{ color:var(--text); }
+  #console .muted{ color:var(--muted); }
+
+  footer{
+    margin-top:28px; color:var(--muted); font-size:12px; line-height:1.7;
+  }
+  footer a{ color:var(--mint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Design Patterns · Composite + Visitor</p>
+    <h1>File System Simulator</h1>
+    <p class="sub">
+      The tree on the left is a real <b>Composite</b> structure (files &amp; directories built from <code>files.txt</code>).
+      Run any operation below — each one is a separate <b>Visitor</b> that walks the same tree without the
+      file/directory classes ever knowing what the operation does.
+    </p>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head"><span>composite tree</span><span class="dots"><span></span><span></span><span></span></span></div>
+      <div id="tree"></div>
+    </div>
+
+    <div class="panel">
+      <div class="controls">
+        <button class="primary" onclick="runVisitor('statistics')">st — statistics</button>
+        <button onclick="runVisitor('short')">sh — short print</button>
+        <button onclick="runVisitor('count')">c — count files</button>
+        <button onclick="runVisitor('size')">sz — total size</button>
+        <button onclick="clearConsole()" style="margin-inline-start:auto;color:var(--muted)">clear</button>
+      </div>
+      <div class="panel-head"><span>console output</span><span>Main.java</span></div>
+      <div id="console"></div>
+    </div>
+  </div>
+
+  <footer>
+    Data source: <code>files.txt</code> (unmodified, as supplied with the exercise). This page re-implements the four
+    Java visitors in JavaScript purely for the visual walkthrough — the real logic lives in
+    <code>src/*Visitor.java</code>. See the <a href="README.md">README</a> for how to run the actual Java program.
+  </footer>
+</div>
+
+<script>
+// ---- Mirrors the Java Composite tree built from files.txt ----
+const tree = {
+  name:"root", type:"dir", children:[
+    {name:"song.mp3", type:"mp3", lengthSec:354, size:7901},
+    {name:"icon.jpg", type:"jpg", width:32, height:32, size:910},
+    {name:"doc", type:"dir", children:[
+      {name:"text.txt", type:"txt", words:583, size:5263},
+      {name:"other.html", type:"html", lines:128, size:3265},
+      {name:"folder", type:"dir", children:[
+        {name:"Swed.pptx", type:"pptx", slides:20, size:400400}
+      ]}
+    ]},
+    {name:"folder2", type:"dir", children:[
+      {name:"word.docx", type:"docx", words:1029, pages:3, size:40000}
+    ]},
+    {name:"pic.jpg", type:"jpg", width:35, height:32, size:9210}
+  ]
+};
+
+const icons = {dir:"📁", mp3:"🎵", jpg:"🖼️", html:"🌐", txt:"📄", pptx:"📊", docx:"📃"};
+
+function renderTree(){
+  const el = document.getElementById('tree');
+  el.innerHTML = '';
+  function walk(node, depth, path){
+    const row = document.createElement('div');
+    row.className = 'node' + (node.type==='dir' ? ' dir' : '');
+    row.id = 'n-' + path;
+    row.innerHTML = `<span class="indent" style="width:${depth*18}px"></span><span class="icon">${icons[node.type]}</span><span>${node.name}</span>`;
+    el.appendChild(row);
+    if(node.children){
+      node.children.forEach((c,i)=>walk(c, depth+1, path+'-'+i));
+    }
+  }
+  walk(tree, 0, '0');
+}
+renderTree();
+
+function log(html){
+  const c = document.getElementById('console');
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.innerHTML = html;
+  c.appendChild(line);
+  c.scrollTop = c.scrollHeight;
+}
+function clearConsole(){ document.getElementById('console').innerHTML=''; }
+
+async function highlight(path, ms=90){
+  const node = document.getElementById('n-'+path);
+  if(node){ node.classList.add('hit'); await sleep(ms); node.classList.remove('hit'); }
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// post-order traversal, mirroring the Java visitors exactly
+async function postOrder(node, path, visit){
+  if(node.children){
+    for(let i=0;i<node.children.length;i++){
+      await postOrder(node.children[i], path+'-'+i, visit);
+    }
+  }
+  await highlight(path);
+  visit(node);
+}
+
+function countLeaves(node){
+  if(!node.children) return 1;
+  return node.children.reduce((s,c)=>s+countLeaves(c),0);
+}
+
+async function runVisitor(kind){
+  log(`<span class="prompt">&gt; ${ {statistics:'st', short:'sh', count:'c', size:'sz'}[kind] }</span>`);
+  let total = 0, count = 0;
+  await postOrder(tree, '0', (node)=>{
+    if(kind==='short'){
+      log(`<span class="result">${node.name}</span>`);
+    } else if(kind==='count' && node.type!=='dir'){
+      count++;
+    } else if(kind==='size' && node.type!=='dir'){
+      total += node.size;
+    } else if(kind==='statistics'){
+      total += 0;
+      if(node.type==='dir'){
+        log(`<span class="result">Directory ${node.name} has ${countLeaves(node)} files.</span>`);
+      } else if(node.type==='mp3'){
+        log(`<span class="result">The bitrate of ${node.name} is ${Math.round(node.size/node.lengthSec)} bytes per second.</span>`);
+      } else if(node.type==='jpg'){
+        log(`<span class="result">The picture ${node.name} has an average of ${Math.round(node.size/(node.width*node.height))} bytes per pixel.</span>`);
+      } else if(node.type==='html'){
+        log(`<span class="result">The file ${node.name} contains ${node.lines} lines.</span>`);
+      } else if(node.type==='txt'){
+        log(`<span class="result">The file ${node.name} contains ${node.words} words.</span>`);
+      } else if(node.type==='pptx'){
+        log(`<span class="result">The average slide size in Presentation ${node.name} is ${Math.round(node.size/node.slides)}.</span>`);
+      } else if(node.type==='docx'){
+        log(`<span class="result">The file ${node.name} has an average of ${Math.round(node.words/node.pages)} words per page.</span>`);
+      }
+    }
+  });
+  if(kind==='count') log(`<span class="muted">Found ${count} files</span>`);
+  if(kind==='size') log(`<span class="muted">the total size is ${total} bytes</span>`);
+}
+</script>
+</body>
+</html>
