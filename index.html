@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>File System Simulator — Composite &amp; Visitor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  :root{
+    --bg:#0d1015;
+    --panel:#151922;
+    --panel-2:#1b202b;
+    --border:#262c38;
+    --text:#e9ebf1;
+    --muted:#8b93a7;
+    --amber:#f2b134;
+    --mint:#6ee7d1;
+    --mono: 'IBM Plex Mono', Menlo, Consolas, monospace;
+    --display: 'Space Grotesk', var(--mono);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);}
+  body{
+    color:var(--text);
+    font-family:var(--mono);
+    padding:36px 20px 60px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+
+  .badge-row{margin-bottom:18px;}
+  .badge{
+    display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--mint); border:1px solid rgba(110,231,209,.35); background:rgba(110,231,209,.07);
+    padding:4px 10px;border-radius:999px;margin-inline-end:8px;
+  }
+
+  h1{
+    font-family:var(--display);
+    font-size:clamp(26px,3.6vw,36px);
+    margin:0 0 10px;font-weight:700;
+    background:linear-gradient(90deg,#e9ebf1,#9fb0c9);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .sub{color:var(--muted);font-size:14px;line-height:1.65;max-width:660px;}
+  .sub b{color:var(--text);font-weight:600;}
+
+  .col{ vertical-align:top; }
+  .col-left{ display:inline-block; width:47%; margin-right:2%; }
+  .col-right{ display:inline-block; width:49%; }
+  @media (max-width:760px){
+    .col-left,.col-right{ display:block; width:100%; margin-right:0; }
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    margin-top:20px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.28);
+  }
+  .panel-head{
+    padding:11px 15px;
+    border-bottom:1px solid var(--border);
+    font-size:11.5px;color:var(--muted);
+    display:block;
+    letter-spacing:.05em; text-transform:uppercase;
+  }
+  .panel-head b{ color:var(--text); float:right; text-transform:none; letter-spacing:0; }
+
+  #tree{ padding:16px 14px; font-size:13.5px; line-height:2; }
+  .node{
+    display:block; padding:2px 8px; border-radius:6px;
+    transition: background .25s ease, color .25s ease;
+  }
+  .node.dir{ color:var(--amber); font-weight:600; }
+  .node.hit{ background:rgba(110,231,209,.15); color:var(--mint) !important; }
+  .indent{ display:inline-block; }
+
+  .controls{ padding:14px 14px 4px; }
+  button{
+    font-family:var(--mono);
+    background:var(--panel-2);
+    color:var(--text);
+    border:1px solid var(--border);
+    padding:9px 13px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:12.5px;
+    margin:0 8px 10px 0;
+    transition:.15s border-color, .15s transform, .15s color;
+  }
+  button:hover{ border-color:var(--mint); color:var(--mint); transform:translateY(-1px); }
+  button.primary{ border-color:var(--amber); color:var(--amber); }
+  button.clear{ color:var(--muted); float:right; margin-right:0; }
+
+  #console{
+    padding:14px;
+    font-size:12.5px;
+    min-height:270px;
+    max-height:420px;
+    overflow-y:auto;
+    line-height:1.8;
+  }
+  #console .line{ opacity:0; animation:fadeIn .3s forwards; }
+  @keyframes fadeIn{ to{opacity:1;} }
+  #console .prompt{ color:var(--mint); }
+  #console .result{ color:var(--text); }
+  #console .muted{ color:var(--muted); }
+
+  .legend{ margin-top:22px; color:var(--muted); font-size:12px; }
+  .legend span{ color:var(--text); }
+
+  footer{ margin-top:26px; color:var(--muted); font-size:12px; line-height:1.7; }
+  footer a{ color:var(--mint); text-decoration:none; border-bottom:1px dotted var(--mint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="badge-row">
+    <span class="badge">Composite</span><span class="badge">Visitor</span><span class="badge">Java</span>
+  </div>
+  <h1>File System Simulator</h1>
+  <p class="sub">
+    The tree on the left is a live <b>Composite</b> structure (files &amp; directories built from <code>files.txt</code>).
+    Run any operation on the right — each is a separate <b>Visitor</b> walking the same tree, with the
+    file/directory classes never knowing what the operation actually does.
+  </p>
+
+  <div class="col col-left">
+    <div class="panel">
+      <div class="panel-head">composite tree <b>files.txt</b></div>
+      <div id="tree"></div>
+    </div>
+  </div>
+
+  <div class="col col-right">
+    <div class="panel">
+      <div class="controls">
+        <button class="primary" id="btn-statistics" onclick="runVisitor('statistics')">st — statistics</button>
+        <button id="btn-short" onclick="runVisitor('short')">sh — short print</button>
+        <button id="btn-count" onclick="runVisitor('count')">c — count files</button>
+        <button id="btn-size" onclick="runVisitor('size')">sz — total size</button>
+        <button class="clear" onclick="clearConsole()">clear</button>
+      </div>
+      <div class="panel-head">console output <b>Main.java</b></div>
+      <div id="console"></div>
+    </div>
+  </div>
+
+  <p class="legend">Data: <span>files.txt</span> · Logic mirrored 1:1 from <span>src/*Visitor.java</span> for this visual walkthrough.</p>
+
+  <footer>
+    This page is a JavaScript re-creation of the four Java visitors, purely for the visual walkthrough — the real
+    implementation is in <code>src/*.java</code>. See the <a href="README.md">README</a> to run the actual program.
+  </footer>
+</div>
+
+<script>
+const tree = {
+  name:"root", type:"dir", children:[
+    {name:"song.mp3", type:"mp3", lengthSec:354, size:7901},
+    {name:"icon.jpg", type:"jpg", width:32, height:32, size:910},
+    {name:"doc", type:"dir", children:[
+      {name:"text.txt", type:"txt", words:583, size:5263},
+      {name:"other.html", type:"html", lines:128, size:3265},
+      {name:"folder", type:"dir", children:[
+        {name:"Swed.pptx", type:"pptx", slides:20, size:400400}
+      ]}
+    ]},
+    {name:"folder2", type:"dir", children:[
+      {name:"word.docx", type:"docx", words:1029, pages:3, size:40000}
+    ]},
+    {name:"pic.jpg", type:"jpg", width:35, height:32, size:9210}
+  ]
+};
+const icons = {dir:"\u{1F4C1}", mp3:"\u{1F3B5}", jpg:"\u{1F5BC}", html:"\u{1F310}", txt:"\u{1F4C4}", pptx:"\u{1F4CA}", docx:"\u{1F4C3}"};
+
+function renderTree(){
+  const el = document.getElementById('tree');
+  el.innerHTML = '';
+  function walk(node, depth, path){
+    const row = document.createElement('div');
+    row.className = 'node' + (node.type==='dir' ? ' dir' : '');
+    row.id = 'n-' + path;
+    row.innerHTML = '<span class="indent" style="width:'+(depth*18)+'px"></span><span>'+icons[node.type]+'</span> <span>'+node.name+'</span>';
+    el.appendChild(row);
+    if(node.children){ node.children.forEach((c,i)=>walk(c, depth+1, path+'-'+i)); }
+  }
+  walk(tree, 0, '0');
+}
+renderTree();
+
+function log(html){
+  const c = document.getElementById('console');
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.innerHTML = html;
+  c.appendChild(line);
+  c.scrollTop = c.scrollHeight;
+}
+function clearConsole(){ document.getElementById('console').innerHTML=''; }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function highlight(path, ms){
+  const node = document.getElementById('n-'+path);
+  if(node){ node.classList.add('hit'); await sleep(ms); if(!window.__freeze) node.classList.remove('hit'); }
+}
+async function postOrder(node, path, visit, ms){
+  if(node.children){ for(let i=0;i<node.children.length;i++){ await postOrder(node.children[i], path+'-'+i, visit, ms); } }
+  await highlight(path, ms);
+  visit(node);
+}
+function countLeaves(node){ if(!node.children) return 1; return node.children.reduce((s,c)=>s+countLeaves(c),0); }
+
+async function runVisitor(kind, ms){
+  ms = ms || 90;
+  const label = {statistics:'st', short:'sh', count:'c', size:'sz'}[kind];
+  log('<span class="prompt">&gt; '+label+'</span>');
+  let total = 0, count = 0;
+  await postOrder(tree, '0', (node)=>{
+    if(kind==='short'){
+      log('<span class="result">'+node.name+'</span>');
+    } else if(kind==='count' && node.type!=='dir'){
+      count++;
+    } else if(kind==='size' && node.type!=='dir'){
+      total += node.size;
+    } else if(kind==='statistics'){
+      if(node.type==='dir'){
+        log('<span class="result">Directory '+node.name+' has '+countLeaves(node)+' files.</span>');
+      } else if(node.type==='mp3'){
+        log('<span class="result">The bitrate of '+node.name+' is '+Math.round(node.size/node.lengthSec)+' bytes per second.</span>');
+      } else if(node.type==='jpg'){
+        log('<span class="result">The picture '+node.name+' has an average of '+Math.round(node.size/(node.width*node.height))+' bytes per pixel.</span>');
+      } else if(node.type==='html'){
+        log('<span class="result">The file '+node.name+' contains '+node.lines+' lines.</span>');
+      } else if(node.type==='txt'){
+        log('<span class="result">The file '+node.name+' contains '+node.words+' words.</span>');
+      } else if(node.type==='pptx'){
+        log('<span class="result">The average slide size in Presentation '+node.name+' is '+Math.round(node.size/node.slides)+'.</span>');
+      } else if(node.type==='docx'){
+        log('<span class="result">The file '+node.name+' has an average of '+Math.round(node.words/node.pages)+' words per page.</span>');
+      }
+    }
+  }, ms);
+  if(kind==='count') log('<span class="muted">Found '+count+' files</span>');
+  if(kind==='size') log('<span class="muted">the total size is '+total+' bytes</span>');
+}
+
+// ---- autoplay mode, used only to generate the README preview GIF ----
+if(location.hash === '#autoplay'){
+  window.__freeze = true;
+  setTimeout(()=>{ runVisitor('statistics', 55); }, 250);
+}
+</script>
+</body>
+</html>
