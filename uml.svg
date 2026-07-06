@@ -1,0 +1,107 @@
+<svg viewBox="0 0 1180 760" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, Menlo, Consolas, monospace">
+  <defs>
+    <marker id="tri" markerWidth="14" markerHeight="12" refX="12" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="none" stroke="#8b93a7" stroke-width="1"/>
+    </marker>
+    <marker id="diamond" markerWidth="16" markerHeight="12" refX="14" refY="6" orient="auto">
+      <path d="M0,6 L7,0 L14,6 L7,12 Z" fill="#f2b134" stroke="#f2b134"/>
+    </marker>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L8,5 L0,10" fill="none" stroke="#6ee7d1" stroke-width="1.4"/>
+    </marker>
+  </defs>
+  <rect width="1180" height="760" fill="#0d1015"/>
+
+  <!-- FileDetailsVisitor interface -->
+  <g>
+    <rect x="430" y="24" width="320" height="118" rx="8" fill="#161a22" stroke="#6ee7d1" stroke-width="1.4"/>
+    <text x="590" y="44" fill="#6ee7d1" font-size="12" text-anchor="middle">&#171;interface&#187;</text>
+    <text x="590" y="62" fill="#e9ebf1" font-size="14" font-weight="bold" text-anchor="middle">FileDetailsVisitor</text>
+    <line x1="440" y1="70" x2="740" y2="70" stroke="#262c38"/>
+    <text x="448" y="86" fill="#c7cde0" font-size="10.5">+visit(DirectoryDetails)</text>
+    <text x="448" y="100" fill="#c7cde0" font-size="10.5">+visit(Mp3/Jpg/Html/...)</text>
+    <text x="448" y="114" fill="#c7cde0" font-size="10.5">  x6 overloads — one per file type</text>
+    <text x="448" y="130" fill="#8b93a7" font-size="10">Visitor pattern: one method per element type</text>
+  </g>
+
+  <!-- FileDetails abstract -->
+  <g>
+    <rect x="430" y="200" width="320" height="140" rx="8" fill="#161a22" stroke="#f2b134" stroke-width="1.4"/>
+    <text x="590" y="220" fill="#f2b134" font-size="12" text-anchor="middle" font-style="italic">&#171;abstract&#187;</text>
+    <text x="590" y="238" fill="#e9ebf1" font-size="14" font-weight="bold" text-anchor="middle">FileDetails</text>
+    <line x1="440" y1="246" x2="740" y2="246" stroke="#262c38"/>
+    <text x="448" y="262" fill="#c7cde0" font-size="10.5">#name : String</text>
+    <text x="448" y="276" fill="#c7cde0" font-size="10.5">-path : String</text>
+    <line x1="440" y1="284" x2="740" y2="284" stroke="#262c38"/>
+    <text x="448" y="300" fill="#c7cde0" font-size="10.5">+getName() / +getFullName()</text>
+    <text x="448" y="314" fill="#c7cde0" font-size="10.5">+getPath() / +setName()</text>
+    <text x="448" y="328" fill="#6ee7d1" font-size="10.5">+accept(visitor) : void</text>
+  </g>
+  <line x1="590" y1="142" x2="590" y2="200" stroke="#6ee7d1" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <text x="600" y="176" fill="#6ee7d1" font-size="10">accept() forwards to</text>
+  <text x="600" y="188" fill="#6ee7d1" font-size="10">matching visit() overload</text>
+
+  <!-- DirectoryDetails (composite) -->
+  <g>
+    <rect x="860" y="200" width="290" height="120" rx="8" fill="#161a22" stroke="#f2b134" stroke-width="1.4"/>
+    <text x="1005" y="222" fill="#e9ebf1" font-size="14" font-weight="bold" text-anchor="middle">DirectoryDetails</text>
+    <line x1="870" y1="230" x2="1140" y2="230" stroke="#262c38"/>
+    <text x="878" y="246" fill="#c7cde0" font-size="10.5">-files : List&lt;FileDetails&gt;</text>
+    <line x1="870" y1="254" x2="1140" y2="254" stroke="#262c38"/>
+    <text x="878" y="270" fill="#c7cde0" font-size="10.5">+addFile(f) / +getFiles()</text>
+    <text x="878" y="284" fill="#6ee7d1" font-size="10.5">+accept(visitor) : void</text>
+  </g>
+  <line x1="860" y1="250" x2="750" y2="250" stroke="#8b93a7" stroke-width="1.3" marker-end="url(#tri)"/>
+  <path d="M 1005 200 C 1005 170, 620 170, 620 200" fill="none" stroke="#f2b134" stroke-width="1.3" marker-start="url(#diamond)"/>
+  <text x="760" y="168" fill="#f2b134" font-size="10.5" text-anchor="middle">Composite: contains 0..* FileDetails (incl. other directories)</text>
+
+  <!-- Leaf classes -->
+  <g>
+    <rect x="60" y="200" width="330" height="150" rx="8" fill="#161a22" stroke="#8b93a7" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="225" y="222" fill="#e9ebf1" font-size="13" font-weight="bold" text-anchor="middle">Leaf file types (6)</text>
+    <text x="80" y="244" fill="#c7cde0" font-size="11">Mp3FileDetails &#183; lengthSec, size</text>
+    <text x="80" y="262" fill="#c7cde0" font-size="11">JpgFileDetails &#183; width, height, size</text>
+    <text x="80" y="280" fill="#c7cde0" font-size="11">HtmlFileDetails &#183; lines, size</text>
+    <text x="80" y="298" fill="#c7cde0" font-size="11">TxtFileDetails &#183; words, size</text>
+    <text x="80" y="316" fill="#c7cde0" font-size="11">PptxFileDetails &#183; slides, size</text>
+    <text x="80" y="334" fill="#c7cde0" font-size="11">DocxFileDetails &#183; words, pages, size</text>
+  </g>
+  <line x1="390" y1="270" x2="430" y2="270" stroke="#8b93a7" stroke-width="1.3" marker-end="url(#tri)"/>
+  <text x="392" y="360" fill="#8b93a7" font-size="10.5">each overrides accept() &#8594; visitor.visit(this)</text>
+
+  <!-- Factory -->
+  <g>
+    <rect x="60" y="420" width="330" height="90" rx="8" fill="#161a22" stroke="#8b93a7" stroke-width="1.2"/>
+    <text x="225" y="442" fill="#e9ebf1" font-size="13" font-weight="bold" text-anchor="middle">FileDetailsFactory</text>
+    <line x1="70" y1="450" x2="380" y2="450" stroke="#262c38"/>
+    <text x="78" y="466" fill="#c7cde0" font-size="10.5">+getFileDetails(description) : FileDetails</text>
+    <text x="78" y="480" fill="#c7cde0" font-size="10.5">+getExtension(description) : String</text>
+  </g>
+  <line x1="225" y1="420" x2="225" y2="350" stroke="#8b93a7" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#tri)"/>
+  <text x="235" y="400" fill="#8b93a7" font-size="10">creates instances</text>
+  <text x="235" y="412" fill="#8b93a7" font-size="10">of every leaf / directory type</text>
+
+  <!-- Concrete visitors -->
+  <g>
+    <rect x="430" y="420" width="720" height="150" rx="8" fill="#161a22" stroke="#6ee7d1" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="790" y="442" fill="#e9ebf1" font-size="13" font-weight="bold" text-anchor="middle">Concrete Visitors (implement FileDetailsVisitor)</text>
+
+    <text x="450" y="470" fill="#e9ebf1" font-size="11.5" font-weight="bold">FileCountVisitor</text>
+    <text x="450" y="486" fill="#c7cde0" font-size="10.5">-count : int &#183; +getCount()</text>
+
+    <text x="450" y="512" fill="#e9ebf1" font-size="11.5" font-weight="bold">SizeCalculatorVisitor</text>
+    <text x="450" y="528" fill="#c7cde0" font-size="10.5">-sizeAll : int &#183; +getSizeAll()</text>
+
+    <text x="750" y="470" fill="#e9ebf1" font-size="11.5" font-weight="bold">ShortPrintVisitor</text>
+    <text x="750" y="486" fill="#c7cde0" font-size="10.5">post-order name printing</text>
+
+    <text x="750" y="512" fill="#e9ebf1" font-size="11.5" font-weight="bold">StatisticsVisitor</text>
+    <text x="750" y="528" fill="#c7cde0" font-size="10.5">per-type stats, rounded</text>
+
+    <text x="450" y="554" fill="#8b93a7" font-size="10.5">Each is a fully independent class — adding a 5th operation never touches FileDetails.</text>
+  </g>
+  <line x1="790" y1="420" x2="790" y2="142" stroke="#6ee7d1" stroke-width="1.3" stroke-dasharray="5 3" marker-end="url(#tri)"/>
+  <text x="800" y="300" fill="#6ee7d1" font-size="10.5">realizes</text>
+
+  <text x="20" y="730" fill="#8b93a7" font-size="11">&#8594; solid triangle = inheritance/realization &#183; &#8594; filled diamond = composition &#183; &#8594; dashed = dependency</text>
+</svg>

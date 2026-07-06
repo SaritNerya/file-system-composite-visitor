@@ -8,4 +8,3 @@ doc/folder/Swed.pptx slides: 20, 400400 bytes
 folder2
 folder2/word.docx words: 1029, pages: 3, 40000 bytes
 pic.jpg 35x32, 9210 bytes
-
